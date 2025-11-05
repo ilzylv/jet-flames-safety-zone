@@ -9,8 +9,8 @@ The primary objective of this project is to compare three distinct thermal radia
 ## How to Run
 1. Clone the repository: 
    ```bash
-   git clone https://github.com/ilzylv/methane-jet-flame-analysis.git
-   cd methane-jet-flame-analysis
+   git clone https://github.com/ilzylv/jet-flames-safety-zone.git
+   cd jet-flames-safety-zone
 
 2. Create a virtual environment and install the dependencies:
    ```bash
