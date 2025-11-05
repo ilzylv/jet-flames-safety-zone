@@ -3,15 +3,13 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from src.modelo_chama import (FlameGeometry, RadiationModels, FUELS_DATABASE)
-from src.graficos import (plot_flux_map_2D,
-                          plot_distance_vs_potencia) # <-- Função de plotagem atualizada
+from src.graficos import (plot_flux_map_2D, plot_distance_vs_potencia)
 
 # Cria pasta de saída
 os.makedirs('outputs', exist_ok=True)
 
 # Parâmetros
 fuel = FUELS_DATABASE['methane']
-LHV = fuel.lower_heating_value  # MJ/kg (Não é mais usado no loop, mas mantido para info)
 
 # Range de Potência (Q_T) como variável independente
 # De 50 kW a 10.000 kW (10 MW)
@@ -61,7 +59,7 @@ dist_models = {'API Standard': dist_API, 'Caetano': dist_Caetano, 'DeRis': dist_
 x = np.linspace(-30, 30, 250)
 y = np.linspace(-30, 30, 250)
 
-# Usa condição intermediária
+# Condição intermediária
 idx = len(potencias) // 2
 Q_med = potencias[idx]
 Lf_med = comprimentos_chama[idx]
@@ -126,13 +124,13 @@ df_distancias.to_csv('outputs/tabela_distancias_detalhada.csv', index=False)
 tabela_resumo = []
 for j, zona in enumerate(zonas_nomes):
     linha = {
-        'Safe zone': zona.split('(')[0].strip(),
+        'Safety Zone': zona.split('(')[0].strip(),
         'Flux (kW/m²)': zona.split('(')[1].replace(')', ''),
-        'API Médio (m)': f'{np.mean(dist_API[:, j]):.2f}',
+        'API Mean (m)': f'{np.mean(dist_API[:, j]):.2f}',
         'API Min-Max (m)': f'{np.min(dist_API[:, j]):.2f} - {np.max(dist_API[:, j]):.2f}',
-        'Caetano Médio (m)': f'{np.mean(dist_Caetano[:, j]):.2f}',
+        'Caetano Mean (m)': f'{np.mean(dist_Caetano[:, j]):.2f}',
         'Caetano Min-Max (m)': f'{np.min(dist_Caetano[:, j]):.2f} - {np.max(dist_Caetano[:, j]):.2f}',
-        'DeRis Médio (m)': f'{np.mean(dist_DeRis[:, j]):.2f}',
+        'DeRis Mean (m)': f'{np.mean(dist_DeRis[:, j]):.2f}',
         'DeRis Min-Max (m)': f'{np.min(dist_DeRis[:, j]):.2f} - {np.max(dist_DeRis[:, j]):.2f}'
     }
     tabela_resumo.append(linha)
@@ -154,11 +152,11 @@ for j, zona in enumerate(zonas_nomes):
     linha = {
         'Zone': zona.split('(')[0].strip(),
         'Flux (kW/m²)': zona.split('(')[1].replace(')', ''),
-        'FC DeRis -> Caetano (média)': f'{np.mean(fc_deris):.3f}',
+        'FC DeRis -> Caetano (mean)': f'{np.mean(fc_deris):.3f}',
         'FC DeRis -> Caetano (min)': f'{np.min(fc_deris):.3f}',
         'FC DeRis -> Caetano (max)': f'{np.max(fc_deris):.3f}',
         'FC DeRis -> Caetano (std)': f'{np.std(fc_deris):.3f}',
-        'FC API -> Caetano (média)': f'{np.mean(fc_api):.3f}',
+        'FC API -> Caetano (mean)': f'{np.mean(fc_api):.3f}',
         'FC API -> Caetano (min)': f'{np.min(fc_api):.3f}',
         'FC API -> Caetano (max)': f'{np.max(fc_api):.3f}',
         'FC API -> Caetano (std)': f'{np.std(fc_api):.3f}'
@@ -190,7 +188,7 @@ ax1.set_ylabel('Correction factor: D_Caetano / D_DeRis', fontsize=11)
 ax1.set_title('Correction factor: De Ris -> Caetano', fontsize=12, fontweight='bold')
 ax1.legend(fontsize=9)
 ax1.grid(True, alpha=0.3)
-ax1.axhline(y=1.0, color='k', linestyle='--', alpha=0.5, label='Paridade')
+ax1.axhline(y=1.0, color='k', linestyle='--', alpha=0.5, label='Parity')
 
 # FC API -> Caetano
 for j, (zona, color) in enumerate(zip(zonas_nomes, colors)):
@@ -204,35 +202,35 @@ padding_2 = max(padding_2, 0.05)
 ax2.set_ylim(min(min_val_2, 1.0) - padding_2, max(max_val_2, 1.0) + padding_2)
 
 ax2.set_xscale('log')
-ax2.set_xlabel('Potência $Q_T$ (kW)', fontsize=11)
-ax2.set_ylabel('Fator de correção: D_Caetano / D_API', fontsize=11)
-ax2.set_title('Fator de correção: API -> Caetano', fontsize=12, fontweight='bold')
+ax2.set_xlabel('Power $Q_T$ (kW)', fontsize=11)
+ax2.set_ylabel('Correction factor: D_Caetano / D_API', fontsize=11)
+ax2.set_title('Correction factor: API -> Caetano', fontsize=12, fontweight='bold')
 ax2.legend(fontsize=9)
 ax2.grid(True, alpha=0.3)
-ax2.axhline(y=1.0, color='k', linestyle='--', alpha=0.5, label='Paridade')
+ax2.axhline(y=1.0, color='k', linestyle='--', alpha=0.5, label='Parity')
 
 plt.tight_layout()
 plt.savefig('outputs/fatores_correcao.png', dpi=300, bbox_inches='tight')
 plt.close()
 
 # Prints finais
-print(f"\nCombustível: {fuel.name}")
-print(f"Temperatura da chama: {T_med - 273:.0f}°C")
-print(f"Range de potência: {potencias[0]:.1f} - {potencias[-1]:.1f} kW")
-print(f"Range de comprimento de chama: {comprimentos_chama[0]:.2f} - {comprimentos_chama[-1]:.2f} m")
+print("Final results")
+print(f"\nFuel: {fuel.name}")
+print(f"Power range: {potencias[0]:.1f} - {potencias[-1]:.1f} kW")
+print(f"Flame length range: {comprimentos_chama[0]:.2f} - {comprimentos_chama[-1]:.2f} m")
 
-print("\n Médias gerais entre modelos")
-print(f"Distância API média: {np.mean(dist_API):.2f} m (±{np.std(dist_API):.2f})")
-print(f"Distância Caetano média: {np.mean(dist_Caetano):.2f} m (±{np.std(dist_Caetano):.2f})")
-print(f"Distância De Ris média: {np.mean(dist_DeRis):.2f} m (±{np.std(dist_DeRis):.2f})")
+print("\nOverall model comparison")
+print(f"API mean distance: {np.mean(dist_API):.2f} m (±{np.std(dist_API):.2f})")
+print(f"Caetano mean distance: {np.mean(dist_Caetano):.2f} m (±{np.std(dist_Caetano):.2f})")
+print(f"De Ris mean distance: {np.mean(dist_DeRis):.2f} m (±{np.std(dist_DeRis):.2f})")
 
 diff_api = 100 * (np.mean(dist_API) / np.mean(dist_Caetano) - 1)
 diff_deris = 100 * (np.mean(dist_DeRis) / np.mean(dist_Caetano) - 1)
 
-print(f"\nDiferença API vs Caetano: {diff_api:+.1f}%")
-print(f"Diferença DeRis vs Caetano: {diff_deris:+.1f}%")
+print(f"\nDifference API vs Caetano: {diff_api:+.1f}%")
+print(f"Difference DeRis vs Caetano: {diff_deris:+.1f}%")
 
-print("Fatores de correção recomendados")
+print("Recommended correction factors")
 
 for j, zona in enumerate(zonas_nomes):
     fc_deris_medio = np.mean(fator_deris_caetano[:, j])

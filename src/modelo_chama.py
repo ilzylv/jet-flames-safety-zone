@@ -33,24 +33,6 @@ FUELS_DATABASE = {
         emissivity=0.25,
         fr_typical=0.17  # Chamas turbulentas de metano (baixa fuligem)
     ),
-    'propane': FuelProperties(
-        name='Propano (C₃H₈)',
-        molecular_mass=44.0,
-        lower_heating_value=46.35,
-        C1=0.28,
-        C2=0.61,
-        emissivity=0.30,
-        fr_typical=0.25
-    ),
-    'ethylene': FuelProperties(
-        name='Etileno (C₂H₄)',
-        molecular_mass=28.0,
-        lower_heating_value=47.16,
-        C1=0.26,
-        C2=0.57,
-        emissivity=0.35,
-        fr_typical=0.30
-    )
 }
 
 # Geometria da chama
@@ -80,8 +62,7 @@ class FlameGeometry:
 # Modelos de radiação térmica
 class RadiationModels:
     @staticmethod
-    def api_standard_model(Q_total_kW: float, K_limit: float = 1.58,
-                           transmissivity: float = 0.98) -> float:
+    def api_standard_model(Q_total_kW: float, K_limit: float = 1.58, transmissivity: float = 0.98) -> float:
         """
         Modelo API 521 (2014) para chamas de jato turbulento.
         """
@@ -101,10 +82,7 @@ class RadiationModels:
         return D_ref
 
     @staticmethod
-    def detailed_model_deris_distance(Q_total_kW: float, flame_temp: float,
-                                      Lf: float, Df: float,
-                                      fuel: FuelProperties,
-                                      K_limit: float = 1.58) -> float:
+    def detailed_model_deris_distance(Q_total_kW: float, flame_temp: float, Lf: float, Df: float, fuel: FuelProperties, K_limit: float = 1.58) -> float:
         """
         Modelo radiativo de De Ris (2000) adaptado.
         """
@@ -115,11 +93,7 @@ class RadiationModels:
         return float(D)
 
     @staticmethod
-    def deris_point_flux(Q_total_kW: float, emissivity: float,
-                         flame_temp: float, Lf: float, Df: float,
-                         x: np.ndarray, y: np.ndarray,
-                         z_receptor: float = 1.5,
-                         fr_fuel: float = 0.20) -> np.ndarray:
+    def deris_point_flux(Q_total_kW: float, emissivity: float, flame_temp: float, Lf: float, Df: float, x: np.ndarray, y: np.ndarray, z_receptor: float = 1.5, fr_fuel: float = 0.20) -> np.ndarray:
         """
         Campo de fluxo radiativo (kW/m²) no plano z = z_receptor.
         """
@@ -135,8 +109,7 @@ class RadiationModels:
         return q_r
 
     @staticmethod
-    def calculate_distance_for_flux(Q_total_kW: float, Lf: float,
-                                    fuel: FuelProperties, K_target: float) -> float:
+    def calculate_distance_for_flux(Q_total_kW: float, Lf: float, fuel: FuelProperties, K_target: float) -> float:
         """
         Calcula distância de segurança para um fluxo térmico específico.
         Escalona o resultado do modelo Caetano (K=1.58) [2] para um K_target.
