@@ -1,11 +1,6 @@
 import numpy as np
 from dataclasses import dataclass
 
-# Constantes
-STEFAN_BOLTZMANN_KW = 5.670374419e-11  # kW/(m².K⁴)
-RHO_METHANE = 0.68  # kg/m³
-DEFAULT_FLAME_TEMP = 1324.0  # K (1051°C do experimento Peng et al.) [3]
-
 # Propriedades do metano
 @dataclass
 class FuelProperties:
@@ -17,7 +12,7 @@ class FuelProperties:
     C2: float  # Termo independente (Intercept, C1 no paper)
     # Emissividade típica
     emissivity: float
-    # Fração radiativa característica (para chamas turbulentas médias)
+    # Fração radiativa característica
     fr_typical: float
 
 FUELS_DATABASE = {
@@ -57,7 +52,6 @@ class FlameGeometry:
         Baseado em Caetano et al. (2020) [2] e observações experimentais.
         """
         return 0.17 * Lf if is_turbulent else 0.10 * Lf
-
 
 # Modelos de radiação térmica
 class RadiationModels:

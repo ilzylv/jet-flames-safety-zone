@@ -1,7 +1,6 @@
 import numpy as np
 import os
 import pandas as pd
-import matplotlib.pyplot as plt
 from src.modelo_chama import (FlameGeometry, RadiationModels, FUELS_DATABASE)
 from src.graficos import (plot_flux_map_2D, plot_distance_vs_potencia)
 
@@ -11,10 +10,8 @@ os.makedirs('outputs', exist_ok=True)
 # Parâmetros
 fuel = FUELS_DATABASE['methane']
 
-# Range de Potência (Q_T) como variável independente
-# De 50 kW a 10.000 kW (10 MW)
+# Range de Potência (Q_T) de 50 kW a 10.000 kW (10 MW)
 q_range = np.logspace(np.log10(50), np.log10(10000), 80)
-
 n_zones = 5
 flux_levels = [12.5, 9.5, 5.0, 4.0, 1.6]  # kW/m²
 
@@ -26,10 +23,7 @@ dist_Caetano = np.zeros_like(dist_API)
 dist_DeRis = np.zeros_like(dist_API)
 
 # Loop principal
-
 for i, Q_total in enumerate(potencias):
-    # Q_total é a nossa variável de entrada
-
     # Calcula a geometria da chama diretamente da potência
     Lf = FlameGeometry.calculate_flame_length(Q_total)
     comprimentos_chama[i] = Lf
@@ -87,7 +81,6 @@ for f in flux_levels:
         Q_med, Lf_med, fuel, f
     )
 
-# Passa Q_med em vez de Re_med
 plot_flux_map_2D(Q_field, x, y, rings, Q_med, 'outputs/mapa_2D_fluxo.png')
 
 # DxQ
@@ -166,53 +159,6 @@ for j, zona in enumerate(zonas_nomes):
 df_fatores = pd.DataFrame(tabela_fatores)
 df_fatores.to_csv('outputs/tabela_fatores_correcao.csv', index=False)
 
-# Gráfico dos fatores de correção
-fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
-
-colors = ['#8B0000', '#FF4500', '#FFD700', '#90EE90', '#87CEEB']
-
-# FC DeRis -> Caetano
-for j, (zona, color) in enumerate(zip(zonas_nomes, colors)):
-    ax1.plot(potencias, fator_deris_caetano[:, j],
-             label=zona.split('(')[0].strip(), linewidth=2, color=color)
-
-min_val_1 = np.min(fator_deris_caetano)
-max_val_1 = np.max(fator_deris_caetano)
-padding_1 = (max_val_1 - min_val_1) * 0.1
-padding_1 = max(padding_1, 0.05)
-ax1.set_ylim(min(min_val_1, 1.0) - padding_1, max(max_val_1, 1.0) + padding_1)
-
-ax1.set_xscale('log')
-ax1.set_xlabel('Power $Q_T$ (kW)', fontsize=11)
-ax1.set_ylabel('Correction factor: D_Caetano / D_DeRis', fontsize=11)
-ax1.set_title('Correction factor: De Ris -> Caetano', fontsize=12, fontweight='bold')
-ax1.legend(fontsize=9)
-ax1.grid(True, alpha=0.3)
-ax1.axhline(y=1.0, color='k', linestyle='--', alpha=0.5, label='Parity')
-
-# FC API -> Caetano
-for j, (zona, color) in enumerate(zip(zonas_nomes, colors)):
-    ax2.plot(potencias, fator_api_caetano[:, j],
-             label=zona.split('(')[0].strip(), linewidth=2, color=color)
-
-min_val_2 = np.min(fator_api_caetano)
-max_val_2 = np.max(fator_api_caetano)
-padding_2 = (max_val_2 - min_val_2) * 0.1
-padding_2 = max(padding_2, 0.05)
-ax2.set_ylim(min(min_val_2, 1.0) - padding_2, max(max_val_2, 1.0) + padding_2)
-
-ax2.set_xscale('log')
-ax2.set_xlabel('Power $Q_T$ (kW)', fontsize=11)
-ax2.set_ylabel('Correction factor: D_Caetano / D_API', fontsize=11)
-ax2.set_title('Correction factor: API -> Caetano', fontsize=12, fontweight='bold')
-ax2.legend(fontsize=9)
-ax2.grid(True, alpha=0.3)
-ax2.axhline(y=1.0, color='k', linestyle='--', alpha=0.5, label='Parity')
-
-plt.tight_layout()
-plt.savefig('outputs/fatores_correcao.png', dpi=300, bbox_inches='tight')
-plt.close()
-
 # Prints finais
 print("Final results")
 print(f"\nFuel: {fuel.name}")
@@ -231,7 +177,6 @@ print(f"\nDifference API vs Caetano: {diff_api:+.1f}%")
 print(f"Difference DeRis vs Caetano: {diff_deris:+.1f}%")
 
 print("Recommended correction factors")
-
 for j, zona in enumerate(zonas_nomes):
     fc_deris_medio = np.mean(fator_deris_caetano[:, j])
     fc_api_medio = np.mean(fator_api_caetano[:, j])

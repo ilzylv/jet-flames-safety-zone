@@ -1,4 +1,4 @@
-Zone,Flux (kW/m²),FC DeRis -> Caetano (média),FC DeRis -> Caetano (min),FC DeRis -> Caetano (max),FC DeRis -> Caetano (std),FC API -> Caetano (média),FC API -> Caetano (min),FC API -> Caetano (max),FC API -> Caetano (std)
+Zone,Flux (kW/m²),FC DeRis -> Caetano (mean),FC DeRis -> Caetano (min),FC DeRis -> Caetano (max),FC DeRis -> Caetano (std),FC API -> Caetano (mean),FC API -> Caetano (min),FC API -> Caetano (max),FC API -> Caetano (std)
 Red zone,12.5,0.863,0.449,1.639,0.334,1.013,0.370,3.331,0.755
 Orange zone,9.5,0.863,0.449,1.639,0.334,1.013,0.370,3.331,0.755
 Yellow zone,5.0,0.863,0.449,1.639,0.334,1.013,0.370,3.331,0.755

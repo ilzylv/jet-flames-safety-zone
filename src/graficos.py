@@ -19,33 +19,25 @@ MODELOS_ESTILO = {
     'DeRis': (':', 'De Ris')
 }
 
-def plot_flux_map_2D(Q_field: np.ndarray, x: np.ndarray, y: np.ndarray,
-                     rings: dict, Q_med: float, filepath: str):
-    """
-    Gera um mapa de contorno 2D do fluxo térmico e sobrepõe os anéis de
-    segurança calculados pelos diferentes modelos.
-    """
-
-    model_names = list(MODELOS_ESTILO.keys())
-    n_models = len(model_names)
-
-    fig, axes = plt.subplots(1, n_models, figsize=(7 * n_models, 7),
-                             sharex=True, sharey=True)
-    if n_models == 1:
-        axes = [axes]
+def plot_flux_map_2D(Q_field: np.ndarray, x: np.ndarray, y: np.ndarray, rings: dict, Q_med: float, filepath_base: str):
+    # Gera um mapa de contorno 2D do fluxo térmico e sobrepõe os anéis de segurança calculados pelos diferentes modelos.
 
     Q_min = 1e-2
     Q_field_plot = np.maximum(Q_field, Q_min)
     levels = np.logspace(np.log10(Q_min), np.log10(Q_field.max()), 50)
 
-    legend_elements_flux = []
-    flux_legend_done = {f: False for f in ZONAS_FLUXO}
+    # Elementos da legenda de zonas
+    legend_elements_flux = [
+        Line2D([0], [0], color=color, lw=3, label=f'{label} ({flux} kW/m²)')
+        for flux, (color, label) in ZONAS_FLUXO.items()
+    ]
 
-    max_dist = max(rings[m][f] for m in rings for f in ZONAS_FLUXO if f in rings[m]) * 1.15
+    max_dist = max(
+        rings[m][f] for m in rings for f in ZONAS_FLUXO if f in rings[m]
+    ) * 1.15
 
-    for i, model_name in enumerate(model_names):
-        ax = axes[i]
-        linestyle, model_label = MODELOS_ESTILO[model_name]
+    for model_name, (linestyle, model_label) in MODELOS_ESTILO.items():
+        fig, ax = plt.subplots(figsize=(9, 6))
 
         # Mapa de calor
         cf = ax.contourf(x, y, Q_field_plot, levels=levels,
@@ -61,7 +53,7 @@ def plot_flux_map_2D(Q_field: np.ndarray, x: np.ndarray, y: np.ndarray,
                         alpha=0.7)
         ax.clabel(cs, inline=True, fontsize=8, fmt='%.1f kW/m²')
 
-        # Círculos/anéis de segurança
+        # Círculos de segurança
         if model_name in rings:
             for flux, (color, flux_label) in ZONAS_FLUXO.items():
                 if flux not in rings[model_name]:
@@ -74,64 +66,39 @@ def plot_flux_map_2D(Q_field: np.ndarray, x: np.ndarray, y: np.ndarray,
                                 linewidth=2.5,
                                 alpha=1.0)
                 ax.add_artist(circle)
-                if not flux_legend_done[flux]:
-                    legend_elements_flux.append(
-                        Line2D([0], [0], color=color, lw=3,
-                               label=f'{flux_label} ({flux} kW/m²)')
-                    )
-                    flux_legend_done[flux] = True
 
-        ax.set_xlabel('Distância X (m)', fontsize=12)
-        ax.set_ylabel('Distância Y (m)', fontsize=12)
-        ax.set_title(f'Modelo: {model_label}',
-                     fontsize=14, fontweight='bold')
+        # Eixos e estilo
+        ax.set_xlabel('X (m)', fontsize=11)
+        ax.set_ylabel('Y (m)', fontsize=11)
+        ax.set_title(f'2D Flux Map – {model_label}\n(Q = {Q_med:.0f} kW)', fontsize=14, fontweight='bold', pad=10)
         ax.set_aspect('equal')
-        ax.grid(True, linestyle=':', alpha=0.5, color='white')
+        ax.grid(True, linestyle=':', alpha=0.4, color='white')
         ax.axhline(0, color='white', linestyle=':', alpha=0.5, lw=1)
         ax.axvline(0, color='white', linestyle=':', alpha=0.5, lw=1)
         ax.set_xlim(-max_dist, max_dist)
         ax.set_ylim(-max_dist, max_dist)
 
-    fig.subplots_adjust(right=0.8, wspace=0.1)
-    leg1 = fig.legend(handles=legend_elements_flux, title="Zonas de Fluxo (Cor)",
-                      loc='upper left',
-                      bbox_to_anchor=(0.81, 0.85),  # Posição (x=81%, y=85%)
-                      fontsize=10, title_fontsize=11)
+        # Barra de cores
+        cbar = plt.colorbar(cf, ax=ax, pad=0.10, location='left')
+        cbar.set_label('Radiative heat flux (kW/m²)', fontsize=11)
 
-    cbar_ax = fig.add_axes([0.81, 0.15, 0.02, 0.45])
-    cbar = fig.colorbar(cf, cax=cbar_ax)
-    cbar.set_label('Fluxo Térmico Radiativo (kW/m²)', fontsize=12)
+        # Legenda
+        ax.legend(handles=legend_elements_flux, title="Flux zones", loc='center left', bbox_to_anchor=(1.05, 0.5), fontsize=9, title_fontsize=10, frameon=True)
 
-    fig.suptitle(f'Mapa de Fluxo 2D e Zonas de Segurança (Q = {Q_med:.0f} kW)',
-                 fontsize=16, fontweight='bold')
+        plt.tight_layout()
+        filename = f"{filepath_base}_{model_name.replace(' ', '_')}.png"
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
+        plt.close(fig)
 
-    plt.savefig(filepath, dpi=300, bbox_inches='tight')
-    plt.close(fig)
+def plot_distance_vs_potencia(q_range: np.ndarray, dist_models: dict, filepath_base: str):
 
-
-def plot_distance_vs_potencia(q_range: np.ndarray, dist_models: dict,
-                              filepath: str):
-    """
-    Compara as distâncias de segurança calculadas pelos diferentes modelos
-    em função da taxa de liberação de calor.
-    """
-    print(f"  Gerando D vs Q: {filepath}")
-
+    # Compara as distâncias de segurança calculadas pelos diferentes modelos em função da taxa de liberação de calor.
     zonas_nomes = [label for flux, (color, label) in ZONAS_FLUXO.items()]
     cores = [color for flux, (color, label) in ZONAS_FLUXO.items()]
     n_zones = len(zonas_nomes)
 
-    model_names = list(dist_models.keys())
-    n_models = len(model_names)
-
-    fig, axes = plt.subplots(n_models, 1, figsize=(12, n_models * 5),
-                             sharex=True, sharey=True)
-    if n_models == 1:
-        axes = [axes]
-
-    for i, model_name in enumerate(model_names):
-        ax = axes[i]
-        data = dist_models[model_name]  # Shape (len(q_range), n_zones)
+    for model_name, data in dist_models.items():
+        fig, ax = plt.subplots(figsize=(8, 6))
 
         for j in range(n_zones):
             ax.plot(q_range, data[:, j],
@@ -141,16 +108,15 @@ def plot_distance_vs_potencia(q_range: np.ndarray, dist_models: dict,
 
         ax.set_xscale('log')
         ax.set_yscale('log')
-        ax.set_ylabel('Safe zone (m)', fontsize=12)
-        ax.set_title(f'Model: {MODELOS_ESTILO[model_name][1]}',
-                     fontsize=13, fontweight='bold')
+        ax.set_xlabel('Heat release rate ($Q_T$) (kW)', fontsize=12)
+        ax.set_ylabel('Safe distance (m)', fontsize=12)
+        ax.set_title(f'{MODELOS_ESTILO[model_name][1]}',
+                     fontsize=14, fontweight='bold')
         ax.grid(True, which='both', linestyle=':', alpha=0.6)
         ax.legend(loc='upper left', fontsize=10)
 
-    axes[-1].set_xlabel('Heat release rate ($Q_T$) (kW)', fontsize=12)
-    fig.suptitle('Safe zone vs. Power per model',
-                 fontsize=16, fontweight='bold')
-
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95])
-    plt.savefig(filepath, dpi=300, bbox_inches='tight')
-    plt.close(fig)
+        # Caminho do arquivo
+        filename = f"{filepath_base}_{model_name.replace(' ', '_')}.png"
+        plt.tight_layout()
+        plt.savefig(filename, dpi=300, bbox_inches='tight')
+        plt.close(fig)
